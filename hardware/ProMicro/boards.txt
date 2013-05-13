@@ -1,0 +1,35 @@
+##############################################################
+
+proMicro8MHz.name=SparkFun Pro Micro 8MHz/3.3V
+proMicro8MHz.upload.protocol=arduino
+proMicro8MHz.upload.maximum_size=28672
+proMicro8MHz.upload.speed=1200
+proMicro8MHz.bootloader.low_fuses=0xde
+proMicro8MHz.bootloader.high_fuses=0xd8
+proMicro8MHz.bootloader.extended_fuses=0xcb
+proMicro8MHz.bootloader.path=diskloader
+proMicro8MHz.bootloader.file=DiskLoader-ProMicro8.hex
+proMicro8MHz.bootloader.unlock_bits=0x3F
+proMicro8MHz.bootloader.lock_bits=0x2F
+proMicro8MHz.build.mcu=atmega32u4
+proMicro8MHz.build.f_cpu=8000000L
+proMicro8MHz.build.core=arduino
+proMicro8MHz.build.variant=proMicro8
+
+##############################################################
+
+proMicro16MHz.name=SparkFun Pro Micro 16MHz/5V
+proMicro16MHz.upload.protocol=arduino
+proMicro16MHz.upload.maximum_size=28672
+proMicro16MHz.upload.speed=1200
+proMicro16MHz.bootloader.low_fuses=0xde
+proMicro16MHz.bootloader.high_fuses=0xd8
+proMicro16MHz.bootloader.extended_fuses=0xcb
+proMicro16MHz.bootloader.path=diskloader
+proMicro16MHz.bootloader.file=DiskLoader-ProMicro16.hex
+proMicro16MHz.bootloader.unlock_bits=0x3F
+proMicro16MHz.bootloader.lock_bits=0x2F
+proMicro16MHz.build.mcu=atmega32u4
+proMicro16MHz.build.f_cpu=16000000L
+proMicro16MHz.build.core=arduino
+proMicro16MHz.build.variant=proMicro16
