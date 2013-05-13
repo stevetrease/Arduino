@@ -34,23 +34,46 @@ EthernetClient ethClient;  // Ethernet object
 PubSubClient client( MQTT_SERVER, 1883, callback, ethClient); // MQTT object
 
 void setup() {
+  // set random MaAC 
+  for (byte i = 1; i < 6; ++i) {
+    MAC_ADDRESS[i] = random(0,255);     
+  } 
+  
   Serial.begin(57600);
   lcd.begin(16, 2);
   lcd.setBacklight(WHITE);
+  randomSeed(analogRead(0));
   
-  Serial.println("Net begin");
+  
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("DHCP...");
+  lcd.setCursor(0, 1);
+  Serial.println("DHCP...");
   
   pinMode(LEDpin, OUTPUT);
 
   if (Ethernet.begin(MAC_ADDRESS) == 0)       // Get connected!
   {
       Serial.println("Failed to configure Ethernet using DHCP");
+      lcd.print("DHCP failed");
       return;
+  } else {
+      Serial.print("IP: ");                       // A little debug.. show IP address
+      Serial.println(Ethernet.localIP());
+
+      for (byte thisByte = 0; thisByte < 4; thisByte++) {
+          // print the value of each byte of the IP address:
+          Serial.print(Ethernet.localIP()[thisByte], DEC);
+          lcd.print(Ethernet.localIP()[thisByte], DEC);
+          if (thisByte < 3) {
+              Serial.print("."); 
+              lcd.print(".");
+          }
+      }   
+      delay(2000);
   }
-
-  Serial.print("IP: ");                       // A little debug.. show IP address
-  Serial.println(Ethernet.localIP());
-
+ 
   if (client.connect("arduinoClient")) {      // connect to MQTT server
     client.subscribe("sensors/+/+");             // subscribe to topic "rgblight"
     Serial.println("Connected to MQTT");      // let us know this has happened
@@ -73,12 +96,17 @@ void callback(char* topic, byte* payload, unsigned int length) {
   Serial.print('\t');
   Serial.println(topic);
  
-  lcd.setCursor(0,0);
-  for (i = 0; i < 16; i++) {
-     lcd.print(" ");
-  }
+  // lcd.setCursor(0,0);
+  // for (i = 0; i < 16; i++) {
+     // lcd.print(" ");
+  // }
   lcd.setCursor(0, 0);
   lcd.print(topic+8);
+  lcd.print("          ");
+  // for (i = topic.length(); i < 16; i++) {
+     // lcd.print(" ");
+  // }
+  
   lcd.setCursor(0,1);
   for (i = 0; i < length; i++) {
     lcd.print((char) payload[i]);
