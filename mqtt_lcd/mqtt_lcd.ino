@@ -41,7 +41,7 @@ void setup() {
   
   Serial.begin(57600);
   lcd.begin(16, 2);
-  lcd.setBacklight(WHITE);
+  lcd.setBacklight(RED);
   randomSeed(analogRead(0));
   
   
@@ -53,31 +53,33 @@ void setup() {
   
   pinMode(LEDpin, OUTPUT);
 
-  if (Ethernet.begin(MAC_ADDRESS) == 0)       // Get connected!
+  while (Ethernet.begin(MAC_ADDRESS) == 0)       // Get connected!
   {
       Serial.println("Failed to configure Ethernet using DHCP");
+      lcd.clear();
+      lcd.setCursor(0, 0);
       lcd.print("DHCP failed");
-      return;
-  } else {
-      Serial.print("IP: ");                       // A little debug.. show IP address
-      Serial.println(Ethernet.localIP());
-
-      for (byte thisByte = 0; thisByte < 4; thisByte++) {
-          // print the value of each byte of the IP address:
-          Serial.print(Ethernet.localIP()[thisByte], DEC);
-          lcd.print(Ethernet.localIP()[thisByte], DEC);
-          if (thisByte < 3) {
-              Serial.print("."); 
-              lcd.print(".");
-          }
-      }   
-      delay(2000);
+      delay(1000);
   }
+  
+  
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("My IP address: ");
+  lcd.setCursor(0, 1);
+  for (byte thisByte = 0; thisByte < 4; thisByte++) {
+      // print the value of each byte of the IP address:
+      lcd.print(Ethernet.localIP()[thisByte], DEC);
+      if (thisByte < 3) {
+        lcd.print(".");
+      }
+   }
  
-  if (client.connect("arduinoClient")) {      // connect to MQTT server
-    client.subscribe("sensors/+/+");             // subscribe to topic "rgblight"
-    Serial.println("Connected to MQTT");      // let us know this has happened
-  }
+   if (client.connect("arduinoClient")) {      // connect to MQTT server
+     client.subscribe("LCD/1/line/+");           // subscribe to topic "rgblight"
+     Serial.println("Connected to MQTT");      // let us know this has happened
+   }
+   delay(1000);
 }
 
 void loop()
@@ -88,6 +90,7 @@ void loop()
 // handles message arrived on subscribed topic
 void callback(char* topic, byte* payload, unsigned int length) {
   int i;
+  int line;
   
   digitalWrite(LEDpin, HIGH);
   for (int i = 0; i < length; i++) {
@@ -100,20 +103,28 @@ void callback(char* topic, byte* payload, unsigned int length) {
   // for (i = 0; i < 16; i++) {
      // lcd.print(" ");
   // }
-  lcd.setCursor(0, 0);
-  lcd.print(topic+8);
-  lcd.print("          ");
-  // for (i = topic.length(); i < 16; i++) {
-     // lcd.print(" ");
-  // }
   
-  lcd.setCursor(0,1);
+  if (strcmp(topic, "LCD/1/line/0")) {
+      Serial.print("Line 0: ");
+      Serial.println(topic);
+      line = 0; 
+  } else if (strcmp(topic, "LCD/1/line1")) {
+      Serial.print("Line 1: ");
+      Serial.println(topic);
+      line = 1;
+  } else {
+      Serial.print (topic);
+      Serial.println(" is not valid");
+      digitalWrite(LEDpin, LOW);
+      return;    
+  }
+    
+  lcd.setCursor(0,line);
   for (i = 0; i < length; i++) {
     lcd.print((char) payload[i]);
   }
   for (i; i < 16; i++) {
      lcd.print(" ");
-  }
-  
+  }  
   digitalWrite(LEDpin, LOW);            
 }

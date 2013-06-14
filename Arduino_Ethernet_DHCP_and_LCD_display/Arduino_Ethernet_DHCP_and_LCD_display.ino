@@ -31,24 +31,23 @@ void setup() {
 
   // set up the LCD's number of columns and rows: 
   lcd.begin(16, 2);
+  lcd.setBacklight(RED);
   
   randomSeed(analogRead(0));
-}
 
-void loop() {
-  // set random MaAC 
+  // set random MAC 
   for (byte i = 1; i < 6; ++i) {
     mac[i] = random(0,255);     
   } 
   
-  Serial.println("DHCP...");
-  Serial.print("MAC: ");
-  for (byte i = 0; i < 6; ++i) {
-    Serial.print(mac[i], HEX);
-    if (i < 5)
-      Serial.print(':');
-  }
-  Serial.println();
+  // Serial.println("DHCP...");
+  // Serial.print("MAC: ");
+  // for (byte i = 0; i < 6; ++i) {
+    //Serial.print(mac[i], HEX);
+    //if (i < 5)
+      //Serial.print(':');
+  //}
+  //Serial.println();
   
   lcd.clear();
   lcd.setCursor(0, 0);
@@ -61,31 +60,21 @@ void loop() {
   }
   
   // start the Ethernet connection:
-  if (Ethernet.begin(mac) == 0) {
+  while (Ethernet.begin(mac) == 0) {
     Serial.println("Failed to configure Ethernet using DHCP");
     lcd.clear();   
     lcd.setCursor(0, 0);
     lcd.print("DHCP failed");
-    delay(2500);
+    delay(2500);    
   } else {
-    // print your local IP address:
-    Serial.print("My IP address: ");
-    lcd.clear();
-    lcd.setCursor(0, 0);
-    lcd.print("My IP address: ");
-    lcd.setCursor(0, 1);
-    for (byte thisByte = 0; thisByte < 4; thisByte++) {
-      // print the value of each byte of the IP address:
-      Serial.print(Ethernet.localIP()[thisByte], DEC);
-      lcd.print(Ethernet.localIP()[thisByte], DEC);
-      if (thisByte < 3) {
-        Serial.print("."); 
-        lcd.print(".");
-      }
-    }
-    Serial.println();
-  }
-  delay(5000);
+    
+  // print your local IP address:
+  // Serial.print("My IP address: ");
+ 
+
+void loop () {
+ 
 }
+
 
 
