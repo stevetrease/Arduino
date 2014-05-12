@@ -4,9 +4,8 @@
 #include <NanodeMQTT.h>
 
 NanodeMQTT mqtt(&uip);
-struct timer my_timer;
 
-#define STRING_BUFFER 128
+#define STRING_BUFFER 64
 
 // RF stuff
 #define RF_NODEID 1        // master node
@@ -19,8 +18,9 @@ struct timer my_timer;
 // this must be added since we're using the watchdog for low-power waiting
 // ISR(WDT_vect) { Sleepy::watchdogEvent(); }
 
-unsigned int count_crc = 0;
-unsigned int count_pkts = 0;
+
+char  topic[STRING_BUFFER];
+char  message[STRING_BUFFER];
 
 // Payload data structure
 typedef struct {		
@@ -35,10 +35,7 @@ Payload data;
 void setup() {
   byte macaddr[6];
   NanodeUNIO unio(NANODE_MAC_DEVICE);
-
-  pinMode(GREEN_LED, OUTPUT);
-  digitalWrite(GREEN_LED, HIGH);        //off  
-
+  
   Serial.begin(57600);
   Serial.println("Initialising...");
 
@@ -46,7 +43,7 @@ void setup() {
   uip.init(macaddr);
 
   // FIXME: use DHCP instead
-  uip.set_ip_addr(192, 168, 1, 199);
+  uip.set_ip_addr(192, 168, 1, 198 );
   uip.set_netmask(255, 255, 255, 0);
 
   uip.wait_for_link();
@@ -54,31 +51,21 @@ void setup() {
 
   // FIXME: resolve using DNS instead
   mqtt.set_server_addr(192, 168, 1, 103);
+  Serial.println("1");
   mqtt.connect();
- 
+  Serial.println("2");
   rf12_initialize(RF_NODEID, RF12_868MHZ, RF_CHANNEL);
-  
-  // flash the LED to signify booting
-  digitalWrite(GREEN_LED, LOW);
-  delay(100);              
-  digitalWrite(GREEN_LED, HIGH);
-  delay(150); 
-  digitalWrite(GREEN_LED, LOW);
-  delay(200);              
-  digitalWrite(GREEN_LED, HIGH);
+  Serial.println("3");
 }  
   
 
 void loop() {
-  char  topic[STRING_BUFFER];
-  char  message[STRING_BUFFER];
 
   uip.poll();
+  Serial.print(".");
   
   if (rf12_recvDone()) {
     if (rf12_crc == 0) {
-      count_pkts++;
-      
       Payload temp = *(Payload*) rf12_data;
       data = temp;
       
@@ -93,14 +80,9 @@ void loop() {
       sprintf (topic, "nanode/sensor/%d", data.nodeid);
       dtostrf(data.data, 4, 2, message);
       
-      // quick flash on receipt of packet
-      digitalWrite(GREEN_LED, LOW);
-      delay(50);              
-      digitalWrite(GREEN_LED, HIGH);  
-
-      Serial.print(topic);
-      Serial.print(", ");
-      Serial.println(message);
+      // Serial.print(topic);
+      // Serial.print(", ");
+      // Serial.println(message);
  
   
       
@@ -120,8 +102,6 @@ void loop() {
         delay(50);              
         digitalWrite(RED_LED, HIGH);  
       }
-    } else {
-      count_crc++;
     }
   }
 }

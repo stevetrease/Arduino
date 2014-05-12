@@ -62,8 +62,13 @@ void loop() {
       Serial.print("\tt:");
       Serial.print(data.type);
       
-      Serial.print("\td:");
-      Serial.print(data.data);     
+      if (data.type == 'C' or data.type == 'D') { 
+          Serial.print("\td:");
+          Serial.print(data.data, DEC);     
+      } else {
+          Serial.print("\td:");
+          Serial.print(data.data);     
+      }
 
       
       Serial.print("\t");

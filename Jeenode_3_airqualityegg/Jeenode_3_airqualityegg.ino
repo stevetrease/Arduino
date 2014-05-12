@@ -1,69 +1,33 @@
 
 //    
 
-#include <JeeLib.h>
+
 #include <stdint.h>
 #include <DHT.h>
 #include "Wire.h"
 #include "EggBus.h"
 
-// RF stuff
-#define RF_NODEID 15        
-#define RF_CHANNEL 125
-
-
-
-#define LED 6        // Red on Nanode
-#define LED_GREEN 5
-
-
+int LEDpin   = 9;
 
 #define DHTPIN 17
 #define DHTTYPE DHT22
 DHT dht(DHTPIN, DHTTYPE);
 
-
-//data Structure to be sent, called payload
-typedef struct {		
-      	  int            nodeid;		// sending node ID
-          char           type;                  // 
-          float          data;                // humidity
-} Payload;
-Payload data;
-
 EggBus eggBus;
-
 uint8_t   egg_bus_address;
 
 
  
 void setup() {
   Serial.begin(57600);
-  pinMode(LED, OUTPUT);
-  pinMode(LED_GREEN, OUTPUT);
-  digitalWrite(LED, HIGH);        // off  
+  pinMode(LEDpin, OUTPUT);
+  digitalWrite(LEDpin, HIGH);        // off  
   
   Serial.println("Initialising...");
   // flash the LED to signify booting
-  digitalWrite(LED_GREEN, HIGH);
-  digitalWrite(LED, LOW);
+  digitalWrite(LEDpin, HIGH);
   delay(100);   
-  digitalWrite(LED_GREEN, LOW);  
-  digitalWrite(LED, HIGH);
-  delay(100); 
-  digitalWrite(LED_GREEN, HIGH);
-  digitalWrite(LED, LOW);
-  delay(100);              
-  digitalWrite(LED_GREEN, HIGH); // off
-  digitalWrite(LED, HIGH);       // off
-
-  
-  // use channel,node and frequency from EPROM
-  rf12_initialize(RF_NODEID, RF12_868MHZ, RF_CHANNEL);
-
-  data.nodeid = rf12_config(); 
-  Serial.print ("Node id: ");
-  Serial.println (data.nodeid);
+  digitalWrite(LEDpin, HIGH);
   
   eggBus.init();
   egg_bus_address = eggBus.next();
@@ -80,62 +44,27 @@ void loop() {
 
   data.type = 'A';
   data.data = (float) getTemperature();
-  while (!rf12_canSend())
-    rf12_recvDone();
-  rf12_sendStart(0, &data, sizeof data);
-  rf12_sendWait(2);
   Serial.print(data.type);
   Serial.println(data.data);  
 
  
   data.type = 'B';
   data.data = (float) getHumidity();
-  while (!rf12_canSend())
-    rf12_recvDone();
-  rf12_sendStart(0, &data, sizeof data);
-  rf12_sendWait(2);
-  digitalWrite(LED, LOW);
-  delay(50);              
-  digitalWrite(LED, HIGH);
-  delay(10000);
   Serial.print(data.type);
-  Serial.println(data.data,DEC);
+  Serial.println(data.data);
 
-  eggBus.init();
-  egg_bus_address = eggBus.next();
   
   data.type = 'C';
-  data.data = readEggSensor(egg_bus_address, 1);
-  while (!rf12_canSend())
-    rf12_recvDone();
-  rf12_sendStart(0, &data, sizeof data);
-  rf12_sendWait(2);
-  digitalWrite(LED, LOW);
-  delay(50);              
-  digitalWrite(LED, HIGH);
-  delay(10000);
-  Serial.print(data.type);
-  Serial.println(data.data,DEC);
-
-
-  data.type = 'D';
-  data.data = readEggSensor(egg_bus_address, 0);
-  while (!rf12_canSend())
-    rf12_recvDone();
-  rf12_sendStart(0, &data, sizeof data);
-  rf12_sendWait(2);
-  digitalWrite(LED, LOW);
-  delay(50);              
-  digitalWrite(LED, HIGH);
-  delay(10000);
+  data.data = (float) readEggSensor(egg_bus_address, 1);
   Serial.print(data.type);
   Serial.println(data.data);
 
 
-  digitalWrite(LED_GREEN, LOW);
-  delay(50);              
-  digitalWrite(LED_GREEN, HIGH);
-  delay(10000);
+  data.type = 'D';
+  data.data = (float) readEggSensor(egg_bus_address, 0);
+  Serial.print(data.type);
+  Serial.println(data.data);
+
 }
 
 
@@ -160,7 +89,6 @@ float readEggSensor(uint8_t egg_bus_address, int ii) {
    float x_scaler = 0.0;
    float y_scaler = 0.0;
    float i_scaler = 0.0;
-   float f;
    uint32_t measured_value = 0;
    uint32_t r0 = 0;
   
@@ -218,12 +146,15 @@ float readEggSensor(uint8_t egg_bus_address, int ii) {
 //        Serial.println("]");
 //      }
       
-      Serial.print(eggBus.getSensorValue(ii), DEC);   
-      Serial.println(" "); 
-      Serial.print(eggBus.getSensorUnits(ii));  
- 
+      Serial.print("    Sensor Value: ");
+      Serial.println(eggBus.getSensorValue(ii), DEC);    
+      
+      Serial.print("    Sensor Units: ");
+      Serial.println(eggBus.getSensorUnits(ii));  
       return (eggBus.getSensorValue(ii));     
 }
+
+
 
 
 void sensorSetup(){
