@@ -14,6 +14,9 @@ NanodeMQTT mqtt(&uip);
 #define GREEN_LED 5
 #define RED_LED 6
 
+#define ON LOW
+#define OFF HIGH
+
 
 // this must be added since we're using the watchdog for low-power waiting
 // ISR(WDT_vect) { Sleepy::watchdogEvent(); }
@@ -23,10 +26,10 @@ char  topic[STRING_BUFFER];
 char  message[STRING_BUFFER];
 
 // Payload data structure
-typedef struct {		
-      	  int            nodeid;		// sending node ID
+typedef struct {    
+          int            nodeid;    // sending node ID
           char           type;            
-	  float          data;		
+          float          data;    
 } Payload;
 Payload data;
 
@@ -35,6 +38,11 @@ Payload data;
 void setup() {
   byte macaddr[6];
   NanodeUNIO unio(NANODE_MAC_DEVICE);
+
+  pinMode(RED_LED, OUTPUT);
+  pinMode(GREEN_LED, OUTPUT);
+  digitalWrite(RED_LED, OFF); 
+  digitalWrite(GREEN_LED, ON); 
   
   Serial.begin(57600);
   Serial.println("Initialising...");
@@ -51,18 +59,17 @@ void setup() {
 
   // FIXME: resolve using DNS instead
   mqtt.set_server_addr(192, 168, 1, 103);
-  Serial.println("1");
   mqtt.connect();
-  Serial.println("2");
   rf12_initialize(RF_NODEID, RF12_868MHZ, RF_CHANNEL);
-  Serial.println("3");
+  mqtt.publish("test", "nanode booted");
+  digitalWrite(GREEN_LED, OFF);
 }  
   
 
 void loop() {
 
   uip.poll();
-  Serial.print(".");
+  // Serial.print(".");
   
   if (rf12_recvDone()) {
     if (rf12_crc == 0) {
@@ -77,32 +84,27 @@ void loop() {
       Serial.print(data.data);     
       Serial.println();
      
-      sprintf (topic, "nanode/sensor/%d", data.nodeid);
-      dtostrf(data.data, 4, 2, message);
-      
-      // Serial.print(topic);
-      // Serial.print(", ");
-      // Serial.println(message);
- 
-  
-      
-        
+      sprintf (topic, "nanode/sensor/%d/%c", data.nodeid, data.type);
+      dtostrf(data.data, 10, 8, message);
+
       if (mqtt.connected()) {
+        digitalWrite(GREEN_LED, OFF);
+        digitalWrite(RED_LED, ON);
+        
         Serial.print("Publishing ");
         Serial.print(topic);
-        Serial.print(":");
+        Serial.print(" : ");
         Serial.println(message);
 
         mqtt.publish(topic, message);
-        mqtt.publish("Test", "Hello World!");
-        Serial.println("Published.");
+             
+        digitalWrite(RED_LED, OFF);  
+      } else {
+        digitalWrite(RED_LED, ON);   
+        digitalWrite(GREEN_LED, ON); 
 
-        // quick flash on publish
-        digitalWrite(RED_LED, LOW);
-        delay(50);              
-        digitalWrite(RED_LED, HIGH);  
+        Serial.println("not connected");
       }
     }
   }
 }
-
