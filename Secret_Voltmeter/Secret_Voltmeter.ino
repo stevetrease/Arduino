@@ -18,3 +18,4 @@ void setup() {
 void loop() {
   Serial.println( readVcc(), DEC );
   delay(1000);
+}
